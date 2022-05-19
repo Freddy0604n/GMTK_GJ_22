@@ -1,6 +1,6 @@
 extern crate minifb;
 
-use minifb::{Key, Window, WindowOptions, Scale, ScaleMode};
+use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 80;
@@ -16,15 +16,9 @@ fn main() {
         scale_mode: ScaleMode::Stretch,
         topmost: false,
         transparency: false,
-        none: false
+        none: false,
     };
-    let mut window = Window::new(
-        "GMTK Test",
-        WIDTH,
-        HEIGHT,
-        options,
-    )
-    .unwrap_or_else(|e| {
+    let mut window = Window::new("GMTK Test", WIDTH, HEIGHT, options).unwrap_or_else(|e| {
         panic!("{}", e);
     });
 
@@ -33,7 +27,7 @@ fn main() {
         Up,
         Down,
         Left,
-        Right
+        Right,
     }
     let mut dir = Direction::Right;
     let mut position = 1;
@@ -49,14 +43,28 @@ fn main() {
         }
         buffer[position] = 0;
         match dir {
-            Direction::Up => position -= WIDTH,
-            Direction::Down => position += WIDTH,
-            Direction::Left => position -= 1,
+            Direction::Up => {
+                if (position as i32 - WIDTH as i32) < 0 {
+                    position = WIDTH * HEIGHT - (WIDTH - position);
+                } else {
+                    position -= WIDTH;
+                }
+            }
+            Direction::Down => {
+                if position + WIDTH > WIDTH * HEIGHT {
+                    position = (position + WIDTH) - WIDTH * HEIGHT;
+                } else {
+                    position += WIDTH;
+                }
+            }
+            Direction::Left => {if (position - 1) % WIDTH +1 == 0 {
+                position = position - 1 + WIDTH;
+            } else {
+                position -= 1;
+            }},
             Direction::Right => position += 1,
         }
         buffer[position] = 0xFFFFFF;
-        window.
-            update_with_buffer(&buffer, WIDTH, HEIGHT)
-            .unwrap();
+        window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
     }
 }
