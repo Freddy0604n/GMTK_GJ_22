@@ -57,12 +57,18 @@ fn main() {
                     position += WIDTH;
                 }
             }
-            Direction::Left => {if (position - 1) % WIDTH +1 == 0 {
+            Direction::Left => {if position % WIDTH == 0 && position != 0 && position != WIDTH {
                 position = position - 1 + WIDTH;
+            } else if position == 0{
+                position = WIDTH;
             } else {
                 position -= 1;
             }},
-            Direction::Right => position += 1,
+            Direction::Right => {if (position + 1) % WIDTH == 0 {
+                position = position + 1 - WIDTH;
+            } else {
+                position += 1;
+            }},
         }
         buffer[position] = 0xFFFFFF;
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
