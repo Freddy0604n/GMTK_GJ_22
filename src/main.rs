@@ -22,17 +22,22 @@ fn main() {
         panic!("{}", e);
     });
 
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16600*2)));
+    window.limit_update_rate(Some(std::time::Duration::from_micros(16600 * 2)));
     enum Direction {
         Up,
         Down,
         Left,
         Right,
     }
+
     let mut dir = Direction::Right;
-    let mut position = 1;
+    let mut prev_dir = Direction::Left;
+    let mut head_position = 2;
+    let mut tail: Vec<usize> = vec![0, 1];
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if window.is_key_down(Key::W) { // Controls
+        if window.is_key_down(Key::W) {
+            // Controls
             dir = Direction::Up;
         } else if window.is_key_down(Key::S) {
             dir = Direction::Down;
@@ -42,36 +47,52 @@ fn main() {
             dir = Direction::Left;
         }
 
-        buffer[position] = 0; // clear the previous position
+        buffer[head_position] = 0; // clear the previous head_position
+        tail.push(head_position);
+        buffer[tail[0]] = 0;
+        tail.drain(..1);
+
         match dir {
             Direction::Up => {
-                if (position as i32 - WIDTH as i32) < 0 { // if the position needs to roll over
-                    position = WIDTH * HEIGHT - (WIDTH - position);
+                if (head_position as i32 - WIDTH as i32) < 0 {
+                    // if the head_position needs to roll over
+                    head_position = WIDTH * HEIGHT - (WIDTH - head_position);
                 } else {
-                    position -= WIDTH;
+                    head_position -= WIDTH;
                 }
             }
             Direction::Down => {
-                if position + WIDTH > WIDTH * HEIGHT {  // ''
-                    position = (position + WIDTH) - WIDTH * HEIGHT;
+                if head_position + WIDTH > WIDTH * HEIGHT {
+                    // ''
+                    head_position = (head_position + WIDTH) - WIDTH * HEIGHT;
                 } else {
-                    position += WIDTH;
+                    head_position += WIDTH;
                 }
             }
-            Direction::Left => {if position % WIDTH == 0 && position != 0 && position != WIDTH { // ''
-                position = position - 1 + WIDTH;
-            } else if position == 0{
-                position = WIDTH - 1;
-            } else {
-                position -= 1;
-            }},
-            Direction::Right => {if (position + 1) % WIDTH == 0 { // ''
-                position = position + 1 - WIDTH;
-            } else {
-                position += 1;
-            }},
+            Direction::Left => {
+                if head_position % WIDTH == 0 && head_position != 0 && head_position != WIDTH {
+                    // ''
+                    head_position = head_position - 1 + WIDTH;
+                } else if head_position == 0 {
+                    head_position = WIDTH - 1;
+                } else {
+                    head_position -= 1;
+                }
+            }
+            Direction::Right => {
+                if (head_position + 1) % WIDTH == 0 {
+                    // ''
+                    head_position = head_position + 1 - WIDTH;
+                } else {
+                    head_position += 1;
+                }
+            }
         }
-        buffer[position] = 0xFFFF00;
+        buffer[head_position] = 0xFFFF00;
+
+        for i in tail.iter() {
+            buffer[*i] = 0xFFFF00;
+        }
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
     }
 }
