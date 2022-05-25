@@ -4,6 +4,8 @@ use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 
 const MAP_WIDTH: usize = 320;
 const MAP_HEIGHT: usize = 160;
+const CAMERA_WIDTH: usize = 320;
+const CAMERA_HEIGHT: usize = 160;
 
 struct Sprite {
     position: usize,
@@ -13,22 +15,32 @@ struct Sprite {
     render_priority: usize,
 }
 
-fn main() {
-    let mut camera: Vec<u32> = vec![0; MAP_WIDTH * MAP_HEIGHT];
+impl Sprite {
+    pub fn new(
+        position: usize,
+        width: usize,
+        height: usize,
+        texture: Vec<u32>,
+        render_priority: usize,
+    ) -> Sprite {
+        Sprite {
+            position,
+            width,
+            height,
+            texture,
+            render_priority,
+        }
+    }
+}
 
-    let map_width = MAP_WIDTH * 2;
-    let map_height = MAP_HEIGHT + 20;
-    let mut map: Vec<u32> = vec![0; map_width * map_height];
+fn main() {
+    let mut camera: Vec<u32> = vec![0; CAMERA_WIDTH * CAMERA_HEIGHT];
+
+    let mut map: Vec<u32> = vec![0; MAP_WIDTH * MAP_HEIGHT];
     let mut camera_position = 0;
     let mut objects: Vec<Sprite> = Vec::new();
 
-    let mut player = Sprite {
-        position: 20,
-        width: 1,
-        height: 1,
-        texture: vec![0xFFFFFF],
-        render_priority: 1,
-    };
+    let mut player = Sprite::new(20, 2, 2, vec![0xFFFFFF, 0xFF0000, 0x00FF00, 0x0000FF], 1);
     objects.push(player);
 
     let options = WindowOptions {
@@ -43,27 +55,56 @@ fn main() {
     };
 
     let mut window =
-        Window::new("background test", MAP_WIDTH, MAP_HEIGHT, options).unwrap_or_else(|e| {
+        Window::new("background test", CAMERA_WIDTH, CAMERA_HEIGHT, options).unwrap_or_else(|e| {
             panic!("{}", e);
         });
 
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
     while window.is_open() {
-        for sprite in &objects { // draw the sprites on the map
+        map = vec![0; MAP_WIDTH * MAP_HEIGHT];
+        for sprite in &objects {
+            // draw the sprites on the map
             for i in 0..sprite.height {
                 for j in 0..sprite.width {
-                    map[sprite.position + i * map_width + j] = sprite.texture[i* sprite.width + j];
+                    map[sprite.position + i * MAP_WIDTH + j] = sprite.texture[i * sprite.width + j];
                 }
             }
-        }       
-        for i in 0..MAP_HEIGHT { // transfer the image from the map to the camera
-            for j in 0..MAP_WIDTH {
-                camera[i * MAP_WIDTH + j] = map[camera_position + j + i * map_width];
+        }
+        for i in 0..CAMERA_HEIGHT {
+            // transfer the image from the map to the camera
+            for j in 0..CAMERA_WIDTH {
+                camera[i * CAMERA_WIDTH + j] = map[camera_position + j + i * MAP_WIDTH];
+            }
+        }
+        // Player movement, including checks to not let the code panic
+        for key in window.get_keys() {
+            match key {
+                Key::W => {
+                    if (objects[0].position as i32 - MAP_WIDTH as i32) >= 0 {
+                        objects[0].position -= MAP_WIDTH;
+                    }
+                },
+                Key::A => {
+                    if objects[0].position % MAP_HEIGHT != 0 {
+                        objects[0].position -= 1;
+                    }
+                },
+                Key::S => {
+                    if objects[0].position <= MAP_HEIGHT * MAP_WIDTH {
+                            objects[0].position += MAP_WIDTH;
+                    }
+                }
+                Key::D => {
+                    if (objects[0].position + 1) % MAP_HEIGHT != 0 {
+                        objects[0].position += 1;
+                    }
+                }
+                _ => (),
             }
         }
 
         window
-            .update_with_buffer(&camera, MAP_WIDTH, MAP_HEIGHT)
+            .update_with_buffer(&camera, CAMERA_WIDTH, CAMERA_HEIGHT)
             .unwrap();
     }
 }
