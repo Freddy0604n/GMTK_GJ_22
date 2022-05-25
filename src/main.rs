@@ -40,7 +40,7 @@ fn main() {
     let mut camera_position = 0;
     let mut objects: Vec<Sprite> = Vec::new();
 
-    let mut player = Sprite::new(20, 3, 3, vec![0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFF0000, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF], 1);
+    let mut player = Sprite::new(200, 3, 3, vec![0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFF0000, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF], 1);
     objects.push(player);
 
     let options = WindowOptions {
@@ -85,7 +85,7 @@ fn main() {
                     }
                 },
                 Key::A => {
-                    if objects[0].position % MAP_HEIGHT != 0 {
+                    if objects[0].position % MAP_WIDTH != 0 {
                         objects[0].position -= 1;
                     }
                 },
@@ -95,7 +95,7 @@ fn main() {
                     }
                 }
                 Key::D => {
-                    if (objects[0].position + 1) % MAP_HEIGHT != 0 {
+                    if (objects[0].position + 1) % MAP_WIDTH != 0 {
                         objects[0].position += 1;
                     }
                 }
