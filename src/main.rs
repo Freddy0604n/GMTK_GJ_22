@@ -2,22 +2,34 @@ extern crate minifb;
 
 use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 
-const WIDTH: usize = 320;
-const HEIGHT: usize = 160;
+const MAP_WIDTH: usize = 320;
+const MAP_HEIGHT: usize = 160;
+
+struct Sprite {
+    position: usize,
+    width: usize,
+    height: usize,
+    texture: Vec<u32>,
+    render_priority: usize,
+}
 
 fn main() {
-    let mut camera: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let mut camera: Vec<u32> = vec![0; MAP_WIDTH * MAP_HEIGHT];
 
-    let map_width = WIDTH * 2;
-    let map_height = HEIGHT + 20;
+    let map_width = MAP_WIDTH * 2;
+    let map_height = MAP_HEIGHT + 20;
     let mut map: Vec<u32> = vec![0; map_width * map_height];
-    for i in 0..map_height * map_width {
-        if i % 6 == 0 {
-            map[i] = 0xFFFF00;
-        }
-    }
-
     let mut camera_position = 0;
+    let mut objects: Vec<Sprite> = Vec::new();
+
+    let mut player = Sprite {
+        position: 20,
+        width: 1,
+        height: 1,
+        texture: vec![0xFFFFFF],
+        render_priority: 1,
+    };
+    objects.push(player);
 
     let options = WindowOptions {
         borderless: true,
@@ -30,33 +42,28 @@ fn main() {
         none: false,
     };
 
-    let mut window = Window::new("background test", WIDTH, HEIGHT, options).unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
-    let mut y = 0;
+    let mut window =
+        Window::new("background test", MAP_WIDTH, MAP_HEIGHT, options).unwrap_or_else(|e| {
+            panic!("{}", e);
+        });
+
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
     while window.is_open() {
-        for i in 0..HEIGHT {
-            for j in 0..WIDTH {
-                camera[i * WIDTH + j] = map[camera_position + j + i * map_width];
+        for sprite in &objects { // draw the sprites on the map
+            for i in 0..sprite.height {
+                for j in 0..sprite.width {
+                    map[sprite.position + i * map_width + j] = sprite.texture[i* sprite.width + j];
+                }
+            }
+        }       
+        for i in 0..MAP_HEIGHT { // transfer the image from the map to the camera
+            for j in 0..MAP_WIDTH {
+                camera[i * MAP_WIDTH + j] = map[camera_position + j + i * map_width];
             }
         }
-        if window.is_key_down(Key::Up) {
-            if camera_position as i32 - map_width as i32 >= 0 {
-                camera_position -= map_width;
-            }
-        } 
-        if window.is_key_down(Key::Down) {
-            if (camera_position + HEIGHT * map_width) <= (map_height * map_width - 1) {
-                camera_position += map_width;
-            }
-        } 
-        if window.is_key_down(Key::Right) {
-            camera_position += 1;
-        } 
-        if window.is_key_down(Key::Left) {
-            camera_position -= 1;
-        } 
-        window.update_with_buffer(&camera, WIDTH, HEIGHT).unwrap();
+
+        window
+            .update_with_buffer(&camera, MAP_WIDTH, MAP_HEIGHT)
+            .unwrap();
     }
 }
