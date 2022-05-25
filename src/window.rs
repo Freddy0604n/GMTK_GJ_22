@@ -1,7 +1,6 @@
 extern crate minifb;
 
 use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
-use std::thread;
 
 const CAMERA_WIDTH: usize = 320;
 const CAMERA_HEIGHT: usize = 160;
@@ -12,7 +11,6 @@ pub struct Sprite {
     width: usize,
     height: usize,
     texture: Vec<u32>,
-    render_priority: usize,
 }
 
 impl Sprite {
@@ -21,14 +19,12 @@ impl Sprite {
         width: usize,
         height: usize,
         texture: Vec<u32>,
-        render_priority: usize,
     ) -> Sprite {
         Sprite {
             position,
             width,
             height,
             texture,
-            render_priority,
         }
     }
 }
@@ -54,7 +50,7 @@ pub fn start(mut world: Vec<Sprite>, mut map: Vec<u32>, map_width: usize, map_he
     };
 
     let mut window =
-        Window::new("background test", CAMERA_WIDTH, CAMERA_HEIGHT, options).unwrap_or_else(|e| {
+        Window::new("Game", CAMERA_WIDTH, CAMERA_HEIGHT, options).unwrap_or_else(|e| {
             panic!("{}", e);
         });
 
