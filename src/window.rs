@@ -33,6 +33,7 @@ pub fn start(mut world: Vec<Sprite>, mut map: Vec<u32>, map_width: usize, map_he
     let mut camera: Vec<u32> = vec![0; CAMERA_WIDTH * CAMERA_HEIGHT];
 
     let mut camera_position = 0;
+    
     let mut background: Vec<u32> = Vec::new();
     for i in 0..map.len() {
         background.push(map[i]);
